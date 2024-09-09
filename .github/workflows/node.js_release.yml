@@ -1,0 +1,62 @@
+name: Node.js Release
+
+on:
+  pull_request:
+    types:
+      - closed
+
+jobs:
+  Release:
+    if: github.event.pull_request.merged == true && contains(github.event.pull_request.head.ref, 'release')
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [22.x]
+        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+      - name: Cache node modules
+        uses: actions/cache@v3
+        id: cache-node-module
+        env:
+          cache-name: cache-node-modules
+        with:
+          path: |
+            ./node_modules/
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
+      - name: npm clean install
+        run: npm ci
+      - name: Build
+        run: npm run build
+      - name: Extract release version
+        run: echo "version=${GITHUB_HEAD_REF#release/}" >> $GITHUB_OUTPUT
+        id: extract_version
+      - name: Tagging
+        uses: mathieudutour/github-tag-action@v6.2
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          custom_tag: ${{ steps.extract_version.outputs.version }}
+      - name: Create Release
+        id: create_release
+        uses: ncipollo/release-action@v1.14.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag: ${{ steps.extract_version.outputs.version }}
+          commit: main
+          draft: false
+          prerelease: false
+          artifactErrorsFailBuild: true
+          artifacts: "build/*"
+          allowUpdates: true

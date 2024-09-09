@@ -1,0 +1,75 @@
+name: Node.js versioning & tagging
+
+on:
+  workflow_dispatch:
+    inputs:
+      versionType:
+        description: 'Version Type: patch, minor, major'
+        required: true
+        default: 'patch'
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+
+jobs:
+  versioning:
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [22.x]
+        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+      - name: Cache node modules
+        uses: actions/cache@v3
+        id: cache-node-module
+        env:
+          cache-name: cache-node-modules
+        with:
+          path: |
+            ./node_modules/
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
+      - name: npm install
+        run: npm install
+      - name: Versioning & Tagging
+        id: Versioning
+        run: |
+          echo "version=$(npm version --no-git-tag-version ${VERSION_TYPE})" >> $GITHUB_OUTPUT
+          echo $GITHUB_OUTPUT
+        env:
+          VERSION_TYPE: ${{ inputs.versionType }}
+      - name: Update manifest
+        run: node ./scripts/versioning.js
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v7.0.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          title: "Bump: Release ${{ steps.Versioning.outputs.version }}"
+          body: |
+            Automated by GitHub action.
+            Bump to version ${{ github.event.inputs.versionType }}
+          add-paths: |
+            package*json
+            manifest*.json
+          delete-branch: true
+          branch: release/${{ steps.Versioning.outputs.version }}
+          labels: |
+            release
+            ${{ github.event.inputs.versionType }}
+
+
