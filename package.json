@@ -36,7 +36,10 @@
     "check": "node ./node_modules/gulp/bin/gulp.js check",
     "clean": "node ./node_modules/gulp/bin/gulp.js clean",
     "pack": "node ./node_modules/gulp/bin/gulp.js pack",
-    "watch": "node ./node_modules/gulp/bin/gulp.js watch"
+    "watch": "node ./node_modules/gulp/bin/gulp.js watch",
+    "test-ff": "cp manifest.firefox.json manifest.json && web-ext run --devtools --bc",
+    "bump-version": "npm version ${VER:-patch}",
+    "release": "node scripts/versioning.js && npm run build"
   },
   "repository": {
     "url": "https://github.com/DaAwesomeP/tab-counter"
