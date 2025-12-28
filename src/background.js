@@ -19,88 +19,35 @@
  */
 
 import { debounce } from 'underscore'
-
-const updateIcon = async function updateIcon () {
-  // Get settings
-  let settings = await browser.storage.local.get()
-
-  // Get tab counter setting
-  let counterPreference = settings.counter || 0
-
-  let skipPinnedTabPreference = settings.skipPinnedTab
-
-  let skipHiddenTabPreference = settings.skipHiddenTab
-
-  // Stop tab badge update if badge disabled
-  if (counterPreference === 3) return
-
-  // Get current tab to update badge in
-  let currentTab = (await browser.tabs.query({ currentWindow: true, active: true }))[0]
-
-  let allTabsQuery = {}
-
-  let currentWindowQuery = { currentWindow: true }
-
-  if (skipPinnedTabPreference) {
-    allTabsQuery['pinned'] = false
-    currentWindowQuery['pinned'] = false
-  }
-
-  if (skipHiddenTabPreference) {
-    allTabsQuery['hidden'] = false
-    currentWindowQuery['hidden'] = false
-  }
-
-  // Get tabs in current window, tabs in all windows, and the number of windows
-  let currentWindow = (await browser.tabs.query(currentWindowQuery)).length.toString()
-  let allTabs = (await browser.tabs.query(allTabsQuery)).length.toString()
-  let allWindows = (await browser.windows.getAll({ populate: false, windowTypes: ['normal'] })).length.toString()
-
-  if (typeof currentTab !== 'undefined') {
-    let text
-    if (counterPreference === 0) text = currentWindow // Badge shows current window
-    else if (counterPreference === 1) text = allTabs // Badge shows total of all windows
-    else if (counterPreference === 2) text = `${currentWindow}/${allTabs}` // Badge shows both (Firefox limits to about 4 characters based on width)
-    else if (counterPreference === 4) text = allWindows // Badge shows total of all windows
-
-    // Update the badge
-    browser.browserAction.setBadgeText({
-      text: text,
-      tabId: currentTab.id
-    })
-
-    // Update the tooltip
-    browser.browserAction.setTitle({
-      title: `Tab Counter\nTabs in this window:  ${currentWindow}\nTabs in all windows: ${allTabs}\nNumber of windows: ${allWindows}`,
-      tabId: currentTab.id
-    })
-  }
-}
+import * as common from './common.js'
 
 // Prevent from firing too frequently or flooding at a window or restore
-const lazyUpdateIcon = debounce(updateIcon, 250)
+const lazyUpdateIcon = debounce(common.updateAllWindowBadge, 200)
 
 // Prioritize active leading edge of every 1 second on tab switch (fluid update for new tabs)
-const lazyActivateUpdateIcon = debounce(updateIcon, 1000, { leading: true })
+// const lazyActivateUpdateIcon = debounce(updateIcon, 1000, { leading: true })
 
 // Will be error if tab has been removed, so wait 150ms;
 // onActivated fires slightly before onRemoved,
 // but tab is gone during onActivated.
 // Must be a function to avoid event parameter errors
-const update = function update () { setTimeout(lazyUpdateIcon, 150) }
+const update = function update () {
+  // setTimeout(lazyUpdateIcon, 150)
+  lazyUpdateIcon()
+}
 
 // Init badge for when addon starts and not yet loaded tabs
-browser.browserAction.setBadgeText({ text: 'wait' })
-browser.browserAction.setBadgeBackgroundColor({ color: '#000000' })
+// browser.action.setBadgeText({ text: 'wait' })
+// browser.action.setBadgeBackgroundColor({ color: '#000000' })
 
 // Handler for when current tab changes
-const tabOnActivatedHandler = function tabOnActivatedHandler () {
-  // Run normal update for most events
-  update()
-
-  // Prioritize active (fluid update for new tabs)
-  lazyActivateUpdateIcon()
-}
+// const tabOnActivatedHandler = function tabOnActivatedHandler () {
+//   // Run normal update for most events
+//   update()
+//
+//   // Prioritize active (fluid update for new tabs)
+//   lazyActivateUpdateIcon()
+// }
 
 // Load and apply icon and badge color settings
 const checkSettings = async function checkSettings (settingsUpdate) {
@@ -108,25 +55,20 @@ const checkSettings = async function checkSettings (settingsUpdate) {
   let settings = await browser.storage.local.get()
   // Get the browser name and version
   let browserInfo
-  if (browser.runtime.hasOwnProperty('getBrowserInfo')) browserInfo = await browser.runtime.getBrowserInfo()
-  else {
+  if (browser.runtime.hasOwnProperty('getBrowserInfo')) {
+    browserInfo = await browser.runtime.getBrowserInfo()
+  } else {
     browserInfo = { // polyfill doesn't seem to support this method, but we're only concerned with FF at the moment
-      version: '0',
-      vendor: '',
-      name: ''
+      version: '0', vendor: '', name: ''
     }
   }
+
   const browserVersionSplit = browserInfo.version.split('.').map((n) => parseInt(n))
 
   // Set base defaults if new insall
   if (!settings.hasOwnProperty('version')) {
     settings = {
-      version: '0.0.0',
-      icon: 'tabcounter.plain.min.svg',
-      counter: 0,
-      badgeColor: '#999999',
-      skipPinnedTab: false,
-      skipHiddenTab: false
+      version: '0.0.0', icon: 'tabcounter.plain.min.svg', counter: 0, badgeColor: '#999999', skipPinnedTab: false, skipHiddenTab: false
     }
   }
 
@@ -158,29 +100,37 @@ const checkSettings = async function checkSettings (settingsUpdate) {
   }))
 
   // Apply badge color or use default
-  if (settings.hasOwnProperty('badgeColor')) browser.browserAction.setBadgeBackgroundColor({ color: settings.badgeColor })
-  else browser.browserAction.setBadgeBackgroundColor({ color: '#000000' })
+  if (settings.hasOwnProperty('badgeColor')) {
+    browser.action.setBadgeBackgroundColor({ color: settings.badgeColor })
+  } else {
+    browser.action.setBadgeBackgroundColor({ color: '#000000' })
+  }
 
   // Apply badge text color or use default if not set or not supported
   if (settings.hasOwnProperty('badgeTextColor')) {
-    if (settings.badgeTextColorAuto !== true) browser.browserAction.setBadgeTextColor({ color: settings.badgeTextColor })
-    else browser.browserAction.setBadgeTextColor({ color: null })
+    if (settings.badgeTextColorAuto !== true) {
+      browser.action.setBadgeTextColor({ color: settings.badgeTextColor })
+    } else {
+      browser.action.setBadgeTextColor({ color: null })
+    }
   }
 
   // Apply icon selection or use default
-  if (settings.hasOwnProperty('icon')) browser.browserAction.setIcon({ path: `icons/${settings.icon}` })
-  else browser.browserAction.setIcon({ path: 'icons/tabcounter.plain.min.svg' })
+  if (settings.hasOwnProperty('icon')) {
+    browser.action.setIcon({ path: `icons/${settings.icon}` })
+  } else {
+    browser.action.setIcon({ path: 'icons/tabcounter.plain.min.svg' })
+  }
 
   // Get counter preference
-  let counterPreference
-  if (!settings.hasOwnProperty('counter')) counterPreference = 0
-  else counterPreference = settings.counter
+  let counterPreference = common.COUNT_TAB_CURRENT_WINDOW
+  if (settings.hasOwnProperty('counter')) counterPreference = settings.counter
 
   // Either add badge update events or don't if not set to
-  if (counterPreference !== 3) {
+  if (counterPreference !== common.COUNT_NONE) {
     // Watch for tab and window events five seconds after browser startup
     setTimeout(() => {
-      browser.tabs.onActivated.addListener(tabOnActivatedHandler)
+      // browser.tabs.onActivated.addListener(tabOnActivatedHandler)
       browser.tabs.onAttached.addListener(update)
       browser.tabs.onCreated.addListener(update)
       browser.tabs.onDetached.addListener(update)
@@ -194,7 +144,7 @@ const checkSettings = async function checkSettings (settingsUpdate) {
     }, settingsUpdate ? 1 : 5000) // add listeners immeadietly if not browser startup
   } else {
     // remove the listeners that were added
-    browser.tabs.onActivated.removeListener(tabOnActivatedHandler)
+    // browser.tabs.onActivated.removeListener(tabOnActivatedHandler)
     browser.tabs.onAttached.removeListener(update)
     browser.tabs.onCreated.removeListener(update)
     browser.tabs.onDetached.removeListener(update)
@@ -207,19 +157,17 @@ const checkSettings = async function checkSettings (settingsUpdate) {
     browser.windows.onFocusChanged.removeListener(update)
 
     // hide the "wait" badge if set not to show a badge
-    browser.browserAction.setBadgeText({ text: '' })
-    browser.browserAction.setTitle({ title: 'Tab Counter' })
+    browser.action.setBadgeText({ text: '' })
+    browser.action.setTitle({ title: 'Tab Counter' })
 
     // check each tab that was overriden with a counter badge
     let allTabs = await browser.tabs.query({})
     allTabs.forEach((tab) => {
-      browser.browserAction.setBadgeText({
-        text: '',
-        tabId: tab.id
+      browser.action.setBadgeText({
+        text: '', tabId: tab.id
       })
-      browser.browserAction.setTitle({
-        title: 'Tab Counter',
-        tabId: tab.id
+      browser.action.setTitle({
+        title: 'Tab Counter', tabId: tab.id
       })
     })
   }
@@ -241,4 +189,5 @@ const messageHandler = async function messageHandler (request, sender, sendRespo
   // Check for a settings update
   if (request.hasOwnProperty('updateSettings')) if (request.updateSettings) applyAll(true)
 }
+
 browser.runtime.onMessage.addListener(messageHandler)

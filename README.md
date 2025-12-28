@@ -24,5 +24,10 @@ npm run watch
 # check package.json and gulpfile.js for more commands
 ```
 
+## Running on FireFox
+```
+web-ext run
+```
+
 ## License
 [Apache 2.0](https://github.com/pureiboi/tab-counter/blob/master/LICENSE)

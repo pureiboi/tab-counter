@@ -69,7 +69,11 @@ gulp.task('compile', gulp.parallel(() => {
 }))
 
 gulp.task('pack', gulp.parallel(() => {
-  return gulp.src(['dist/**/*', '!dist/**/*.map', 'node_modules/underscore/**/*', 'icons/**/clear-*.png', 'icons/**/*.min.svg', 'manifest.firefox.json', 'LICENSE'], { base: '.' })
+  return gulp.src([
+    'dist/**/*',
+    '!dist/**/*.map', 'node_modules/underscore/**/*', 'node_modules/lodash/**/*',
+    'icons/**/clear-*.png', 'icons/**/*.min.svg', 'manifest.firefox.json',
+    'LICENSE'], { base: '.' })
     .pipe(rename(path => {
       if (path.basename === 'manifest.firefox') {
         path.basename = 'manifest'

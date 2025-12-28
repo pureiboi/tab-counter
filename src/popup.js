@@ -18,32 +18,19 @@
  * limitations under the License.
  */
 
+import * as common from './common'
+
 async function start () {
-  let settings = await browser.storage.local.get()
+  let currentWindow = await browser.windows.getCurrent({
+    populate: false,
+    windowTypes: ['normal']
+  })
 
-  let skipPinnedTabPreference = settings.skipPinnedTab
+  let statData = await common.queryBadgeData(currentWindow.id)
 
-  let skipHiddenTabPreference = settings.skipHiddenTab
-
-  let allTabsQuery = {}
-  let currentWindowQuery = { currentWindow: true }
-
-  if (skipPinnedTabPreference) {
-    allTabsQuery['pinned'] = false
-    currentWindowQuery['pinned'] = false
-  }
-
-  if (skipHiddenTabPreference) {
-    allTabsQuery['hidden'] = false
-    currentWindowQuery['hidden'] = false
-  }
-
-  let currentWindow = (await browser.tabs.query(currentWindowQuery)).length
-  let allTabs = (await browser.tabs.query(allTabsQuery)).length
-  let allWindows = (await browser.windows.getAll({ populate: false, windowTypes: ['normal'] })).length.toString()
-  document.getElementById('currentWindow').textContent = currentWindow
-  document.getElementById('allTabs').textContent = allTabs
-  document.getElementById('allWindows').textContent = allWindows
+  document.getElementById('currentWindow').textContent = statData[common.STAT_CURRENT_WINDOW_TABS_COUNT]
+  document.getElementById('allTabs').textContent = statData[common.STAT_ALL_TAB_COUNT]
+  document.getElementById('allWindows').textContent = statData[common.STAT_WINDOW_COUNT]
 }
 
 if (typeof browser === 'undefined') {
@@ -54,4 +41,6 @@ if (typeof browser === 'undefined') {
   script.src = '../node_modules/webextension-polyfill/dist/browser-polyfill.js'
   script.async = false
   document.head.appendChild(script)
-} else start()
+} else {
+  start()
+}

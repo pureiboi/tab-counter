@@ -17,6 +17,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/* global Option:readonly */
+import { COUNT_TAB_CURRENT_WINDOW, COUNT_TAB_ALL_WINDOWS, COUNT_TAB_CURRENT_WINDOW_OVER_ALL_WINDOWS, COUNT_WINDOW, COUNT_NONE } from './common.js'
 
 var domReady = false
 var browserReady = false
@@ -61,15 +63,36 @@ async function restoreOptions () {
 
 function start () {
   browserReady = true
-  if (domReady && !restored) restoreOptions()
+  if (domReady && !restored) {
+    initApp()
+    restoreOptions()
+  }
   for (let el of document.querySelectorAll('input, select')) {
     el.addEventListener('change', saveOptions)
   }
 }
 
+function initApp () {
+  const counterOptions = [
+    { text: 'Number of Tabs in Current Window', value: COUNT_TAB_CURRENT_WINDOW },
+    { text: 'Total Number of Tabs of All Windows', value: COUNT_TAB_ALL_WINDOWS },
+    { text: 'Both Number of Tabs in Current Window/Total Number of Tabs of All Windows', value: COUNT_TAB_CURRENT_WINDOW_OVER_ALL_WINDOWS },
+    { text: 'Total Number of Windows', value: COUNT_WINDOW },
+    { text: 'None (disables the counter and hover text; click the icon to see the count)', value: COUNT_NONE }
+  ]
+
+  const counterSelect = document.getElementById('counter')
+  counterOptions.forEach(option => {
+    counterSelect.add(new Option(option.text, option.value, false, option.value === '0'))
+  })
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   domReady = true
-  if (browserReady && !restored) restoreOptions()
+  if (browserReady && !restored) {
+    initApp()
+    restoreOptions()
+  }
 })
 
 if (typeof browser === 'undefined') {

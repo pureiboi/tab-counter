@@ -9,7 +9,7 @@
   "version": "1.0.0",
   "description": "A button badge that shows the number of tabs open in a window",
   "homepage_url": "https://github.com/pureiboi/tab-counter",
-  "manifest_version": 2,
+  "manifest_version": 3,
   "applications": {
     "gecko": {
       "id": "tab-counter@pureiboi.funapp.io",
@@ -22,8 +22,7 @@
   "permissions": [
     "storage"
   ],
-  "browser_action": {
-    "browser_style": true,
+  "action": {
     "default_area": "tabstrip",
     "default_icon": "icons/tabcounter.plain.min.svg",
     "theme_icons": [
@@ -41,6 +40,7 @@
   },
   "background": {
     "scripts": [
+      "dist/common.js",
       "dist/background.js"
     ],
     "persistent": true
