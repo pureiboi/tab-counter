@@ -20,78 +20,184 @@
 -->
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="utf-8">
-    <title>Tab Counter Options</title>
-    <style type="text/css">
-      html {
-        font-family: sans-serif;
-      }
-      tr {
-        margin-bottom: 5px;
-      }
-      td {
-        min-width: 400px !important;
-      }
-    </style>
-  </head>
-  <body>
-    <form>
-      <table>
-        <tr style="display: none">
-          <td>Badge Color</td>
-          <td><input type="color" name="badgeColor" id="badgeColor" optionType="string" /></td>
-          <td><em>Unfortuantely, the browser predetermines thefont size of the badge. Setting the badge text color is available in Firefox 63 and above.</em></td>
-        </tr>
-        <tr style="display: none">
-          <td>Automatically set Badge Color</td>
-          <td><input type="checkbox" name="badgeTextColorAuto" id="badgeTextColorAuto" optionType="boolean" /></td>
-          <td><em>When checked, the text color is either white or black based on the highest constrast with the badge color. When unchecked, a manual color may be selected.</em></td>
-        </tr>
-        <tr style="display: none">
-          <td>Badge Text Color (if not automatic)</td>
-          <td><input type="color" name="badgeTextColor" id="badgeTextColor" optionType="string" /></td>
-          <td><em>This option is ignored/disabled unless "Automatically set Badge Color" is unchecked.</em></td>
-        </tr>
-        <tr style="display: none">
-          <td>Icon Color &amp; Style</td>
-          <td>
-            <select name="icon" id="icon" optionType="string" >
-              <option value="tabcounter.plain.min.svg">Tab Counter Default</option>
-              <option value="tabcounter-gray90.plain.min.svg">Tab Counter Gray 90 (Firefox Photon Design System Light Background Icon Color)</option>
-              <option value="tabcounter-gray10.plain.min.svg">Tab Counter Gray 10 (Firefox Photon Design System Dark Background Icon Color)</option>
-              <option value="tabcounter-black.plain.min.svg">Tab Counter Black</option>
-              <option value="tabcounter-white.plain.min.svg">Tab Counter White</option>
-              <option value="clear.plain.min.svg">Clear SVG for Firefox (shows badge only)</option>
-              <option value="clear-1.png">Clear 1px PNG for Opera (shows badge only)</option>
-            </select>
-          </td>
-        </tr>
-        <tr style="display: none">
-          <td>Counter</td>
-          <td>
-            <select name="counter" id="counter" optionType="number">
-<!--              <option value="0">Number of Tabs in Current Window</option>-->
-<!--              <option value="1">Total Number of Tabs of All Windows</option>-->
-<!--              <option value="2">Both Number of Tabs in Current Window/Total Number of Tabs of All Windows</option>-->
-<!--              <option value="4">Total Number of Windows</option>-->
-<!--              <option value="3">None (disables the counter and hover text; click the icon to see the count)</option>-->
-            </select>
-          </td>
-          <td><em>A maximum of four characters can be displayed on the badge; this is a browser limitation.</em></td>
-        </tr>
-        <tr style="display: none">
-          <td>Skip pinned tab</td>
-          <td><input type="checkbox" name="skipPinnedTab" id="skipPinnedTab" optionType="boolean" /></td>
-          <td><em>Skip counting pinned tab</em></td>
-        </tr>
-        <tr style="display: none">
-          <td>Skip hidden tab</td>
-          <td><input type="checkbox" name="skipHiddenTab" id="skipHiddenTab" optionType="boolean" /></td>
-          <td><em>Skip counting hidden tab</em></td>
-        </tr>
-      </table>
-    </form>
-    <script type="text/javascript" src="options.js"></script>
-  </body>
+<head>
+  <meta charset="utf-8">
+  <title>Tab Counter Options</title>
+  <style>
+    html {
+      font-family: sans-serif;
+    }
+
+    table {
+      table-layout: fixed;
+      width: 100%;
+      border-collapse: collapse;
+      margin: 0;
+    }
+
+    /* not required */
+    /*table, th, td {*/
+    /*  border: 1px solid red;*/
+    /*}*/
+
+    tr {
+      /*margin-bottom: 5px;*/
+    }
+
+    td {
+      /*min-width: 150px !important;*/
+      /*word-wrap:break-word*/
+      border-bottom: 1px solid #a1a1a1;
+      /*padding-bottom: 2px;*/
+      /*padding-top: 2px;*/
+      height: 40px;
+    }
+
+    td:nth-child(1) {
+      width: 20%;
+    }
+
+    td:nth-child(2) {
+      width: 80%;
+      padding-left: 40px;
+    }
+
+    table tbody > tr:last-child > td
+    {
+      border-bottom: 0; /* Removes the bottom border from cells in the last row */
+    }
+
+    select {
+      width: 100%;
+    }
+
+    .tooltip {
+      position: relative;
+      cursor: help;
+      align-items: center;
+      display: flex;
+      /*height: 30px;*/
+    }
+
+    .tooltip .tooltiptext {
+      visibility: hidden;
+      width: 470px;
+      background-color: #a1a1a1;
+      color: #fff;
+      border-radius: 6px;
+      padding: 5px 10px;
+      position: absolute;
+      z-index: 1; /* ensures it appears above other content */
+      /*top: -65%;*/
+      /*bottom: 10%; !* position above the hovered element *!*/
+      left: 130%;
+      /*margin-left: -60px; !* centers the tooltip *!*/
+      opacity: 0;
+      transition: opacity 0.3s;
+      font-style: italic
+    }
+
+    .tooltip:hover .tooltiptext {
+      visibility: visible;
+      opacity: 1;
+    }
+
+    .info-icon::after {
+      position: absolute;
+      border: 1px blue solid;
+      color: blue;
+      border-radius: 100%;
+      padding-left: 4px;
+      padding-right: 4px;
+      font-size: 20px;
+      right: -30px;
+      top: 50%;
+      transform: translateY(-50%); /* added this line */
+      content: "\2139"; /* CSS code for ℹ️ */
+    }
+
+  </style>
+</head>
+<body>
+<form>
+  <table>
+    <tr>
+      <td>
+        <span class="tooltip info-icon">Badge Color
+          <span class="tooltiptext ">
+          Unfortunately, the browser predetermines the font size of the badge. Setting the badge text color is available in Firefox 63 and above.
+          </span>
+        </span>
+      </td>
+      <td><input type="color" name="badgeColor" id="badgeColor" optionType="string"/></td>
+    </tr>
+    <tr>
+      <td><span class="tooltip info-icon">Auto set Badge Text Color
+        <!--        <span class="info-icon tooltip">-->
+            <span class="tooltiptext">
+              When checked, the text color is either white or black based on the highest constrast with the badge color. When unchecked, a manual color may be selected.
+            </span>
+            </span>
+      </td>
+      <td><input type="checkbox" name="badgeTextColorAuto" id="badgeTextColorAuto" optionType="boolean"/></td>
+    </tr>
+    <tr>
+      <td><span class="tooltip info-icon">Badge Text Color (if not automatic)
+        <span class="tooltiptext ">
+          This option is ignored/disabled unless "Automatically set Badge Color" is unchecked.
+        </span>
+        </span>
+      </td>
+      <td><input type="color" name="badgeTextColor" id="badgeTextColor" optionType="string"/></td>
+    </tr>
+    <tr>
+      <td>Icon Color &amp; Style</td>
+      <td>
+        <select name="icon" id="icon" optionType="string">
+          <option value="tabcounter.plain.min.svg">Tab Counter Default</option>
+          <option value="tabcounter-gray90.plain.min.svg">Tab Counter Gray 90 (Firefox Photon Design System Light Background Icon Color)</option>
+          <option value="tabcounter-gray10.plain.min.svg">Tab Counter Gray 10 (Firefox Photon Design System Dark Background Icon Color)</option>
+          <option value="tabcounter-black.plain.min.svg">Tab Counter Black</option>
+          <option value="tabcounter-white.plain.min.svg">Tab Counter White</option>
+          <option value="clear.plain.min.svg">Clear SVG for Firefox (shows badge only)</option>
+          <option value="clear-1.png">Clear 1px PNG for Opera (shows badge only)</option>
+        </select>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <span class="info-icon tooltip">Counter
+          <span class="tooltiptext">
+            A maximum of four characters can be displayed on the badge; this is a browser limitation.
+          </span>
+        </span>
+      </td>
+      <td>
+        <select name="counter" id="counter" optionType="number">
+          <!--                        <option value="0">Number of Tabs in Current Window</option>-->
+          <!--                        <option value="1">Total Number of Tabs of All Windows</option>-->
+          <!--                        <option value="2">Both Number of Tabs in Current Window/Total Number of Tabs of All Windows</option>-->
+          <!--                        <option value="4">Total Number of Windows</option>-->
+          <!--                        <option value="3">None (disables the counter and hover text; click the icon to see the count)</option>-->
+        </select>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <span class="info-icon tooltip">Skip pinned tab
+        <span class="tooltiptext">Do not count pinned tab</span>
+        </span>
+      </td>
+      <td><input type="checkbox" name="skipPinnedTab" id="skipPinnedTab" optionType="boolean"/></td>
+    </tr>
+    <tr>
+      <td>
+        <span class="info-icon tooltip">Skip hidden tab<span class="tooltiptext">Do not count hidden tab</span></span>
+      </td>
+      <td><input type="checkbox" name="skipHiddenTab" id="skipHiddenTab" optionType="boolean"/></td>
+    </tr>
+  </table>
+</form>
+<script type="text/javascript" src="options.js"></script>
+</body>
 </html>
