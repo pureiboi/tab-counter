@@ -55,7 +55,7 @@ async function restoreOptions () {
       let el = document.querySelector(`#${setting}`)
       if (el.getAttribute('type') === 'checkbox') el.checked = settings[setting]
       else el.value = settings[setting]
-      el.parentElement.parentElement.style.display = 'block'
+      // el.parentElement.parentElement.style.display = 'block'
     }
   }
   checkBadgeColorManualSetting()
