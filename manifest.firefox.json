@@ -10,7 +10,7 @@
   "description": "A button badge that shows the number of tabs open in a window",
   "homepage_url": "https://github.com/pureiboi/tab-counter",
   "manifest_version": 3,
-  "applications": {
+  "browser_specific_settings": {
     "gecko": {
       "id": "tab-counter@pureiboi.funapp.io",
       "strict_min_version": "58.0"
