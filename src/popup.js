@@ -21,12 +21,12 @@
 import * as common from './common'
 
 async function start () {
-  let currentWindow = await browser.windows.getCurrent({
+  const currentWindow = await browser.windows.getCurrent({
     populate: false,
     windowTypes: ['normal']
   })
 
-  let statData = await common.queryBadgeData(currentWindow.id)
+  const statData = await common.queryBadgeData(currentWindow.id)
 
   document.getElementById('currentWindow').textContent = statData[common.STAT_CURRENT_WINDOW_TABS_COUNT]
   document.getElementById('allTabs').textContent = statData[common.STAT_ALL_TAB_COUNT]
@@ -34,7 +34,7 @@ async function start () {
 }
 
 if (typeof browser === 'undefined') {
-  var script = document.createElement('script')
+  const script = document.createElement('script')
   script.addEventListener('load', () => {
     start()
   })

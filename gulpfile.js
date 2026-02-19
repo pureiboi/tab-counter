@@ -19,26 +19,32 @@
  */
 
 const gulp = require('gulp')
-const del = require('del')
+const { deleteAsync: del } = require('del')
 const lec = require('gulp-line-ending-corrector')
 const bro = require('gulp-bro')
 const babelify = require('babelify')
-const eslint = require('gulp-eslint')
+const gulpESLintNew = require('gulp-eslint-new')
 const rename = require('gulp-rename')
 const sourcemaps = require('gulp-sourcemaps')
-const zip = require('gulp-zip')
+const zip = require('gulp-zip').default
 
 gulp.task('check', () => {
   return gulp.src(['src/**/*.js', 'gulpfile.js'])
-    .pipe(eslint())
-    .pipe(eslint.format())
-    .pipe(eslint.failAfterError())
+    .pipe(gulpESLintNew())
+    .pipe(gulpESLintNew.format())
+    .pipe(gulpESLintNew.failAfterError())
+})
+
+gulp.task('lintFix', () => {
+  return gulp.src(['src/**/*.js', 'gulpfile.js'])
+    .pipe(gulpESLintNew({ fix: true }))
+    .pipe(gulpESLintNew.fix())
 })
 
 gulp.task('checkSafe', () => {
   return gulp.src(['src/**/*.js', 'gulpfile.js'])
-    .pipe(eslint())
-    .pipe(eslint.format())
+    .pipe(gulpESLintNew())
+    .pipe(gulpESLintNew.format())
 })
 
 gulp.task('static', () => {
@@ -57,9 +63,7 @@ gulp.task('compile', gulp.parallel(() => {
   return gulp.src('src/**/*.js')
     .pipe(sourcemaps.init())
     .pipe(bro({
-      transform: [
-        babelify.configure()
-      ]
+      transform: [babelify.configure()]
     }))
     .pipe(sourcemaps.write('.'))
     .pipe(gulp.dest('dist'))
@@ -70,17 +74,18 @@ gulp.task('compile', gulp.parallel(() => {
 
 gulp.task('pack', gulp.parallel(() => {
   return gulp.src([
+    'manifest.firefox.json',
+    'LICENSE',
     'dist/**/*',
     '!dist/**/*.map', 'node_modules/underscore/**/*', 'node_modules/lodash/**/*',
-    'icons/**/clear-*.png', 'icons/**/*.min.svg', 'manifest.firefox.json',
-    'LICENSE'], { base: '.' })
+    'icons/**/clear-*.png', 'icons/**/*.min.svg'], { base: '.' })
     .pipe(rename(path => {
       if (path.basename === 'manifest.firefox') {
         path.basename = 'manifest'
       }
     }))
     .pipe(zip('tab-counter.firefox.zip'))
-    .pipe(gulp.dest('build'))
+    // .pipe(gulp.dest('build'))
 }, () => {
   return gulp.src(['dist/**/*.js', 'dist/**/*.html', 'node_modules/webextension-polyfill/dist/browser-polyfill.js', 'node_modules/underscore/underscore.js', 'icons/**/*.png', 'icons/**/*.min.svg', 'manifest.opera.json', 'LICENSE'], { base: '.' })
     .pipe(rename(path => {

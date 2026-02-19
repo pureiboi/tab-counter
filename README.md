@@ -24,6 +24,13 @@ npm run watch
 # check package.json and gulpfile.js for more commands
 ```
 
+## Lint & fix
+```bash
+npm run lint
+
+npm run lintFix
+```
+
 ## Running on FireFox
 ```bash
 cp manifest.firefox.json manifest.json

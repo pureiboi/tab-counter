@@ -20,24 +20,24 @@
 /* global Option:readonly */
 import { COUNT_TAB_CURRENT_WINDOW, COUNT_TAB_ALL_WINDOWS, COUNT_TAB_CURRENT_WINDOW_OVER_ALL_WINDOWS, COUNT_WINDOW, COUNT_NONE } from './common.js'
 
-var domReady = false
-var browserReady = false
-var restored = false
+let domReady = false
+let browserReady = false
+let restored = false
 
 async function checkBadgeColorManualSetting () {
-  let autoSelect = document.querySelector('#badgeTextColorAuto').checked
+  const autoSelect = document.querySelector('#badgeTextColorAuto').checked
   document.querySelector('#badgeTextColor').disabled = autoSelect
 }
 
 async function saveOptions () {
   checkBadgeColorManualSetting()
-  let settings = await browser.storage.local.get()
-  for (let setting in settings) {
+  const settings = await browser.storage.local.get()
+  for (const setting in settings) {
     if (setting !== 'version') {
-      let el = document.querySelector(`#${setting}`)
+      const el = document.querySelector(`#${setting}`)
       if (el.getAttribute('type') === 'checkbox') settings[setting] = el.checked
       else settings[setting] = el.value
-      let optionType = el.getAttribute('optionType')
+      const optionType = el.getAttribute('optionType')
       if (optionType === 'number' && typeof settings[setting] !== 'number') settings[setting] = parseInt(settings[setting])
       else if (optionType === 'string' && typeof settings[setting] !== 'string') settings[setting] = settings[setting].toString()
       else if (optionType === 'boolean' && typeof settings[setting] !== 'boolean') settings[setting] = (settings[setting].toLowerCase() === 'true')
@@ -49,10 +49,10 @@ async function saveOptions () {
 
 async function restoreOptions () {
   restored = true
-  let settings = await browser.storage.local.get()
-  for (let setting in settings) {
+  const settings = await browser.storage.local.get()
+  for (const setting in settings) {
     if (setting !== 'version') {
-      let el = document.querySelector(`#${setting}`)
+      const el = document.querySelector(`#${setting}`)
       if (el.getAttribute('type') === 'checkbox') el.checked = settings[setting]
       else el.value = settings[setting]
       // el.parentElement.parentElement.style.display = 'block'
@@ -67,7 +67,7 @@ function start () {
     initApp()
     restoreOptions()
   }
-  for (let el of document.querySelectorAll('input, select')) {
+  for (const el of document.querySelectorAll('input, select')) {
     el.addEventListener('change', saveOptions)
   }
 }
@@ -96,7 +96,7 @@ document.addEventListener('DOMContentLoaded', () => {
 })
 
 if (typeof browser === 'undefined') {
-  var script = document.createElement('script')
+  const script = document.createElement('script')
   script.addEventListener('load', () => {
     start()
   })

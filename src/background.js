@@ -55,7 +55,7 @@ const checkSettings = async function checkSettings (settingsUpdate) {
   let settings = await browser.storage.local.get()
   // Get the browser name and version
   let browserInfo
-  if (browser.runtime.hasOwnProperty('getBrowserInfo')) {
+  if (Object.hasOwn(browser.runtime, 'getBrowserInfo')) {
     browserInfo = await browser.runtime.getBrowserInfo()
   } else {
     browserInfo = { // polyfill doesn't seem to support this method, but we're only concerned with FF at the moment
@@ -66,7 +66,7 @@ const checkSettings = async function checkSettings (settingsUpdate) {
   const browserVersionSplit = browserInfo.version.split('.').map((n) => parseInt(n))
 
   // Set base defaults if new insall
-  if (!settings.hasOwnProperty('version')) {
+  if (!Object.hasOwn(settings, 'version')) {
     settings = {
       version: '0.0.0', icon: 'tabcounter.plain.min.svg', counter: 0, badgeColor: '#999999', skipPinnedTab: false, skipHiddenTab: false
     }
@@ -74,7 +74,7 @@ const checkSettings = async function checkSettings (settingsUpdate) {
 
   // Perform settings upgrade
   if (settings.version !== browser.runtime.getManifest().version) {
-    let versionSplit = settings.version.split('.').map((n) => parseInt(n))
+    const versionSplit = settings.version.split('.').map((n) => parseInt(n))
     // Upgrade
 
     // since v0.3.0, icons now adapt to theme so reset icon setting
@@ -82,7 +82,7 @@ const checkSettings = async function checkSettings (settingsUpdate) {
 
     // disable the "both" counter option in version v0.3.0 due to the four-character badge limit (renders the feature uselss)
     if (versionSplit[0] === 0 && versionSplit[1] < 3) {
-      if (settings.hasOwnProperty('counter')) {
+      if (Object.hasOwn(settings, 'counter')) {
         if (settings.counter === 2) settings.counter = 0
       }
     }
@@ -100,14 +100,14 @@ const checkSettings = async function checkSettings (settingsUpdate) {
   }))
 
   // Apply badge color or use default
-  if (settings.hasOwnProperty('badgeColor')) {
+  if (Object.hasOwn(settings, 'badgeColor')) {
     browser.action.setBadgeBackgroundColor({ color: settings.badgeColor })
   } else {
     browser.action.setBadgeBackgroundColor({ color: '#000000' })
   }
 
   // Apply badge text color or use default if not set or not supported
-  if (settings.hasOwnProperty('badgeTextColor')) {
+  if (Object.hasOwn(settings, 'badgeTextColor')) {
     if (settings.badgeTextColorAuto !== true) {
       browser.action.setBadgeTextColor({ color: settings.badgeTextColor })
     } else {
@@ -116,7 +116,7 @@ const checkSettings = async function checkSettings (settingsUpdate) {
   }
 
   // Apply icon selection or use default
-  if (settings.hasOwnProperty('icon')) {
+  if (Object.hasOwn(settings, 'icon')) {
     browser.action.setIcon({ path: `icons/${settings.icon}` })
   } else {
     browser.action.setIcon({ path: 'icons/tabcounter.plain.min.svg' })
@@ -124,7 +124,7 @@ const checkSettings = async function checkSettings (settingsUpdate) {
 
   // Get counter preference
   let counterPreference = common.COUNT_TAB_CURRENT_WINDOW
-  if (settings.hasOwnProperty('counter')) counterPreference = settings.counter
+  if (Object.hasOwn(settings, 'counter')) counterPreference = settings.counter
 
   // Either add badge update events or don't if not set to
   if (counterPreference !== common.COUNT_NONE) {
@@ -161,7 +161,7 @@ const checkSettings = async function checkSettings (settingsUpdate) {
     browser.action.setTitle({ title: 'Tab Counter' })
 
     // check each tab that was overriden with a counter badge
-    let allTabs = await browser.tabs.query({})
+    const allTabs = await browser.tabs.query({})
     allTabs.forEach((tab) => {
       browser.action.setBadgeText({
         text: '', tabId: tab.id
@@ -187,7 +187,7 @@ applyAll()
 // Listen for internal addon messages
 const messageHandler = async function messageHandler (request, sender, sendResponse) {
   // Check for a settings update
-  if (request.hasOwnProperty('updateSettings')) if (request.updateSettings) applyAll(true)
+  if (Object.hasOwn(request, 'updateSettings')) if (request.updateSettings) applyAll(true)
 }
 
 browser.runtime.onMessage.addListener(messageHandler)

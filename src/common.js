@@ -12,19 +12,19 @@ export const STAT_CURRENT_WINDOW_TABS_COUNT = 'current_window_tabs'
 
 export function getBaseQuery () {
   return {
-    'allTabsQuery': {},
-    'currentWindowQuery': {}
+    allTabsQuery: {},
+    currentWindowQuery: {}
   }
 }
 
 export function getSkipPinnedTabQuery (skipPinnedTabPreference) {
   if (skipPinnedTabPreference) {
     return {
-      'allTabsQuery': {
-        'pinned': false
+      allTabsQuery: {
+        pinned: false
       },
-      'currentWindowQuery': {
-        'pinned': false
+      currentWindowQuery: {
+        pinned: false
       }
     }
   }
@@ -33,27 +33,27 @@ export function getSkipPinnedTabQuery (skipPinnedTabPreference) {
 export function getSkipHiddenTabQuery (skipHiddenTabPreference) {
   if (skipHiddenTabPreference) {
     return {
-      'allTabsQuery': {
-        'hidden': false
+      allTabsQuery: {
+        hidden: false
       },
-      'currentWindowQuery': {
-        'hidden': false
+      currentWindowQuery: {
+        hidden: false
       }
     }
   }
 }
 
 export async function queryBadgeData (windowId) {
-  let settings = await browser.storage.local.get()
+  const settings = await browser.storage.local.get()
 
-  let queryObject = lodash.merge(getBaseQuery(), getSkipPinnedTabQuery(settings.skipPinnedTab), getSkipHiddenTabQuery(settings.skipHiddenTab))
+  const queryObject = lodash.merge(getBaseQuery(), getSkipPinnedTabQuery(settings.skipPinnedTab), getSkipHiddenTabQuery(settings.skipHiddenTab))
 
-  let allWindowsObj = await browser.windows.getAll({
+  const allWindowsObj = await browser.windows.getAll({
     populate: false,
     windowTypes: ['normal']
   })
-  let allTabObj = await browser.tabs.query(queryObject.allTabsQuery)
-  let currentWindowTab = await browser.tabs.query(lodash.merge(queryObject.currentWindowQuery, { windowId: windowId }))
+  const allTabObj = await browser.tabs.query(queryObject.allTabsQuery)
+  const currentWindowTab = await browser.tabs.query(lodash.merge(queryObject.currentWindowQuery, { windowId }))
 
   return {
     [STAT_CURRENT_WINDOW_TABS_COUNT]: currentWindowTab.length.toString(),
@@ -63,7 +63,7 @@ export async function queryBadgeData (windowId) {
 }
 
 export const updateAllWindowBadge = async function updateAllWindowBadge () {
-  let allWindows = await browser.windows.getAll({
+  const allWindows = await browser.windows.getAll({
     populate: false,
     windowTypes: ['normal']
   })
@@ -75,12 +75,12 @@ export const updateAllWindowBadge = async function updateAllWindowBadge () {
 
 const updateWindowBadge = async function updateWindowBadge (windowId) {
   // Get settings
-  let settings = await browser.storage.local.get()
+  const settings = await browser.storage.local.get()
   // Get tab counter setting
-  let counterPreference = settings.counter || COUNT_TAB_CURRENT_WINDOW
+  const counterPreference = settings.counter || COUNT_TAB_CURRENT_WINDOW
   // Stop tab badge update if badge disabled
   if (counterPreference === COUNT_NONE) return
-  let statData = await queryBadgeData(windowId)
+  const statData = await queryBadgeData(windowId)
 
   let text = statData[STAT_CURRENT_WINDOW_TABS_COUNT]
   if (counterPreference === COUNT_TAB_CURRENT_WINDOW) {
@@ -96,13 +96,13 @@ const updateWindowBadge = async function updateWindowBadge (windowId) {
 
   //   Update the badge
   browser.action.setBadgeText({
-    text: text,
-    windowId: windowId
+    text,
+    windowId
   })
 
   //  Update the tooltip
   browser.action.setTitle({
     title: `Tab Counter\nTabs in this window:  ${statData[STAT_CURRENT_WINDOW_TABS_COUNT]}\nTabs in all windows: ${statData[STAT_ALL_TAB_COUNT]}\nNumber of windows: ${statData[STAT_WINDOW_COUNT]}`,
-    windowId: windowId
+    windowId
   })
 }
