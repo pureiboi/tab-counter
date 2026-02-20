@@ -40,5 +40,5 @@ jobs:
       - name: npm clean install
         run: npm ci
       - name: Test
-        run: npm run check
+        run: npm run gulp check
 
