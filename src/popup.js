@@ -31,6 +31,27 @@ async function start () {
   document.getElementById('currentWindow').textContent = statData[common.STAT_CURRENT_WINDOW_TABS_COUNT]
   document.getElementById('allTabs').textContent = statData[common.STAT_ALL_TAB_COUNT]
   document.getElementById('allWindows').textContent = statData[common.STAT_WINDOW_COUNT]
+  document.getElementById('currentWindowGroups').textContent = statData[common.STAT_CURRENT_WINDOW_GROUPS_COUNT]
+  document.getElementById('allGroups').textContent = statData[common.STAT_ALL_GROUP_COUNT]
+  document.getElementById('allTagGroup').textContent = statData[common.STAT_ALL_TAB_GROUP_COUNT]
+  document.getElementById('currentTagGroup').textContent = statData[common.STAT_CURRENT_TAB_GROUP_COUNT]
+  document.getElementById('allUnloaded').textContent = statData[common.STAT_ALL_UNLOADED_TAB_COUNT]
+  document.getElementById('currentWindowUnloaded').textContent = statData[common.STAT_CURRENT_UNLOADED_TAB_COUNT]
+
+  const settings = await browser.storage.local.get()
+  if (!settings.countUnloadedTab) {
+    const elements = document.getElementsByClassName('unloadedRow')
+    for (const element of elements) {
+      element.classList.add('hide')
+    }
+  }
+
+  if (!settings.countGroup) {
+    const elements = document.getElementsByClassName('groupTabRow')
+    for (const element of elements) {
+      element.classList.add('hide')
+    }
+  }
 }
 
 if (typeof browser === 'undefined') {

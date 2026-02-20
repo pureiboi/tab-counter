@@ -20,7 +20,8 @@
     "1": "icons/tabcounter-logo.plain.min.svg"
   },
   "permissions": [
-    "storage"
+    "storage",
+    "tabGroups"
   ],
   "action": {
     "default_area": "tabstrip",
@@ -42,7 +43,6 @@
     "scripts": [
       "dist/common.js",
       "dist/background.js"
-    ],
-    "persistent": true
+    ]
   }
 }
