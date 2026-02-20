@@ -32,6 +32,9 @@
         margin: 0px;
         border-bottom: 1px solid black;
       }
+      .hide {
+        display: none;
+      }
     </style>
   </head>
   <body>
@@ -45,21 +48,29 @@
         <td><strong>Tabs in all windows:</strong></td>
         <td><span id="allTabs"></span></td>
       </tr>
-      <tr>
-        <td><strong>Tabs unloaded in this window:</strong></td>
+      <tr class="unloadedRow" >
+        <td><strong>Unloaded tabs in this window:</strong></td>
         <td><span id="currentWindowUnloaded"></span></td>
       </tr>
-      <tr>
-        <td><strong>Tabs unloaded all windows:</strong></td>
+      <tr class="unloadedRow">
+        <td><strong>Unloaded tabs all windows:</strong></td>
         <td><span id="allUnloaded"></span></td>
       </tr>
-      <tr>
+      <tr class="groupTabRow">
         <td><strong>Groups in this window:</strong></td>
         <td><span id="currentWindowGroups"></span></td>
       </tr>
-      <tr>
+      <tr class="groupTabRow">
         <td><strong>Groups in all windows:</strong></td>
         <td><span id="allGroups"></span></td>
+      </tr>
+      <tr class="groupTabRow">
+        <td><strong>Groups tab in this window:</strong></td>
+        <td><span id="currentTagGroup"></span></td>
+      </tr>
+      <tr class="groupTabRow">
+        <td><strong>Groups tab in all windows:</strong></td>
+        <td><span id="allTagGroup"></span></td>
       </tr>
       <tr>
         <td><strong>Number of windows:</strong></td>

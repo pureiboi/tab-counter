@@ -15,6 +15,11 @@ export const STAT_CURRENT_WINDOW_GROUPS_COUNT = 'current_window_groups'
 export const STAT_ALL_GROUP_COUNT = 'all_groups'
 export const STAT_ALL_UNLOADED_COUNT = 'all_unloaded'
 export const STAT_CURRENT_UNLOADED_COUNT = 'current_window_unloaded'
+export const STAT_CURRENT_TAB_GROUP_COUNT = 'current_window_tab_group'
+export const STAT_ALL_TAB_GROUP_COUNT = 'all_tab_group'
+
+export const STAT_CURRENT_UNLOADED_TAB_COUNT = 'current_window_unloaded_tab'
+export const STAT_ALL_UNLOADED_TAB_COUNT = 'all_unloaded_tab'
 
 export function getBaseQuery () {
   return {
@@ -73,22 +78,26 @@ export async function queryBadgeData (windowId) {
   const currentWindowTab = await browser.tabs.query(lodash.merge(queryObject.currentWindowQuery, { windowId }))
   const currentWindowGroupCount = await browser.tabGroups.query({ windowId })
   const allGroupObj = await browser.tabGroups.query({})
+  const currentWindowTagInGroup = currentWindowTab.filter(tab => tab.groupId !== browser.tabGroups.TAB_GROUP_ID_NONE)
+  const allTagInGroup = allTabObj.filter(tab => tab.groupId !== browser.tabGroups.TAB_GROUP_ID_NONE)
 
   let allUnloadedTabCount = 0
   let unloadedCurrentWindowTabCount = 0
-  if (settings.skipUnloadedTab) {
+  if (settings.countUnloadedTab) {
     allUnloadedTabCount = (await browser.tabs.query(formatQueryUnloadedTab().allTabsQuery)).length
     unloadedCurrentWindowTabCount = (await browser.tabs.query(lodash.merge(formatQueryUnloadedTab().currentWindowQuery, { windowId }))).length
   }
 
   return {
-    [STAT_CURRENT_WINDOW_TABS_COUNT]: (currentWindowTab.length - unloadedCurrentWindowTabCount).toString(),
+    [STAT_CURRENT_WINDOW_TABS_COUNT]: currentWindowTab.length.toString(),
     [STAT_WINDOW_COUNT]: allWindowsObj.length.toString(),
-    [STAT_ALL_TAB_COUNT]: (allTabObj.length - allUnloadedTabCount).toString(),
+    [STAT_ALL_TAB_COUNT]: allTabObj.length.toString(),
     [STAT_CURRENT_WINDOW_GROUPS_COUNT]: currentWindowGroupCount.length.toString(),
     [STAT_ALL_GROUP_COUNT]: allGroupObj.length.toString(),
-    [STAT_CURRENT_UNLOADED_COUNT]: unloadedCurrentWindowTabCount.toString(),
-    [STAT_ALL_UNLOADED_COUNT]: allUnloadedTabCount.toString()
+    [STAT_CURRENT_TAB_GROUP_COUNT]: currentWindowTagInGroup.length.toString(),
+    [STAT_ALL_TAB_GROUP_COUNT]: allTagInGroup.length.toString(),
+    [STAT_CURRENT_UNLOADED_TAB_COUNT]: unloadedCurrentWindowTabCount.toString(),
+    [STAT_ALL_UNLOADED_TAB_COUNT]: allUnloadedTabCount.toString()
   }
 }
 
