@@ -13,11 +13,8 @@ export const STAT_ALL_TAB_COUNT = 'all_tabs'
 export const STAT_CURRENT_WINDOW_TABS_COUNT = 'current_window_tabs'
 export const STAT_CURRENT_WINDOW_GROUPS_COUNT = 'current_window_groups'
 export const STAT_ALL_GROUP_COUNT = 'all_groups'
-export const STAT_ALL_UNLOADED_COUNT = 'all_unloaded'
-export const STAT_CURRENT_UNLOADED_COUNT = 'current_window_unloaded'
 export const STAT_CURRENT_TAB_GROUP_COUNT = 'current_window_tab_group'
 export const STAT_ALL_TAB_GROUP_COUNT = 'all_tab_group'
-
 export const STAT_CURRENT_UNLOADED_TAB_COUNT = 'current_window_unloaded_tab'
 export const STAT_ALL_UNLOADED_TAB_COUNT = 'all_unloaded_tab'
 
