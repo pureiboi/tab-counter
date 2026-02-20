@@ -5,10 +5,16 @@ export const COUNT_TAB_ALL_WINDOWS = 1
 export const COUNT_TAB_CURRENT_WINDOW_OVER_ALL_WINDOWS = 2
 export const COUNT_WINDOW = 4
 export const COUNT_NONE = 3
+export const COUNT_ALL_GROUPS = 5
+export const COUNT_CURRENT_WINDOW_GROUPS = 6
 
 export const STAT_WINDOW_COUNT = 'all_windows'
 export const STAT_ALL_TAB_COUNT = 'all_tabs'
 export const STAT_CURRENT_WINDOW_TABS_COUNT = 'current_window_tabs'
+export const STAT_CURRENT_WINDOW_GROUPS_COUNT = 'current_window_groups'
+export const STAT_ALL_GROUP_COUNT = 'all_groups'
+export const STAT_ALL_UNLOADED_COUNT = 'all_unloaded'
+export const STAT_CURRENT_UNLOADED_COUNT = 'current_window_unloaded'
 
 export function getBaseQuery () {
   return {
@@ -43,6 +49,17 @@ export function getSkipHiddenTabQuery (skipHiddenTabPreference) {
   }
 }
 
+function formatQueryUnloadedTab () {
+  return {
+    allTabsQuery: {
+      discarded: true
+    },
+    currentWindowQuery: {
+      discarded: true
+    }
+  }
+}
+
 export async function queryBadgeData (windowId) {
   const settings = await browser.storage.local.get()
 
@@ -54,11 +71,24 @@ export async function queryBadgeData (windowId) {
   })
   const allTabObj = await browser.tabs.query(queryObject.allTabsQuery)
   const currentWindowTab = await browser.tabs.query(lodash.merge(queryObject.currentWindowQuery, { windowId }))
+  const currentWindowGroupCount = await browser.tabGroups.query({ windowId })
+  const allGroupObj = await browser.tabGroups.query({})
+
+  let allUnloadedTabCount = 0
+  let unloadedCurrentWindowTabCount = 0
+  if (settings.skipUnloadedTab) {
+    allUnloadedTabCount = (await browser.tabs.query(formatQueryUnloadedTab().allTabsQuery)).length
+    unloadedCurrentWindowTabCount = (await browser.tabs.query(lodash.merge(formatQueryUnloadedTab().currentWindowQuery, { windowId }))).length
+  }
 
   return {
-    [STAT_CURRENT_WINDOW_TABS_COUNT]: currentWindowTab.length.toString(),
+    [STAT_CURRENT_WINDOW_TABS_COUNT]: (currentWindowTab.length - unloadedCurrentWindowTabCount).toString(),
     [STAT_WINDOW_COUNT]: allWindowsObj.length.toString(),
-    [STAT_ALL_TAB_COUNT]: allTabObj.length.toString()
+    [STAT_ALL_TAB_COUNT]: (allTabObj.length - allUnloadedTabCount).toString(),
+    [STAT_CURRENT_WINDOW_GROUPS_COUNT]: currentWindowGroupCount.length.toString(),
+    [STAT_ALL_GROUP_COUNT]: allGroupObj.length.toString(),
+    [STAT_CURRENT_UNLOADED_COUNT]: unloadedCurrentWindowTabCount.toString(),
+    [STAT_ALL_UNLOADED_COUNT]: allUnloadedTabCount.toString()
   }
 }
 
@@ -83,16 +113,26 @@ const updateWindowBadge = async function updateWindowBadge (windowId) {
   const statData = await queryBadgeData(windowId)
 
   let text = statData[STAT_CURRENT_WINDOW_TABS_COUNT]
-  if (counterPreference === COUNT_TAB_CURRENT_WINDOW) {
-    // Badge shows current window
-    text = statData[STAT_CURRENT_WINDOW_TABS_COUNT]
-  } else if (counterPreference === COUNT_TAB_ALL_WINDOWS) {
-    // Badge shows total of all windows
-    text = statData[STAT_ALL_TAB_COUNT]
-  } else if (counterPreference === COUNT_TAB_CURRENT_WINDOW_OVER_ALL_WINDOWS) {
-    // Badge shows both (Firefox limits to about 4 characters based on width)
-    text = `${statData[STAT_CURRENT_WINDOW_TABS_COUNT]}/${statData[STAT_ALL_TAB_COUNT]}`
-  } else if (counterPreference === COUNT_WINDOW) text = statData[STAT_WINDOW_COUNT] // Badge shows total of all windows
+  switch (counterPreference) {
+    case COUNT_TAB_CURRENT_WINDOW:
+      text = statData[STAT_CURRENT_WINDOW_TABS_COUNT]
+      break
+    case COUNT_TAB_ALL_WINDOWS:
+      text = statData[STAT_ALL_TAB_COUNT]
+      break
+    case COUNT_TAB_CURRENT_WINDOW_OVER_ALL_WINDOWS:
+      text = `${statData[STAT_CURRENT_WINDOW_TABS_COUNT]}/${statData[STAT_ALL_TAB_COUNT]}`
+      break
+    case COUNT_WINDOW:
+      text = statData[STAT_WINDOW_COUNT] // Badge shows total of all windows
+      break
+    case COUNT_ALL_GROUPS:
+      text = statData[STAT_ALL_GROUP_COUNT]
+      break
+    case COUNT_CURRENT_WINDOW_GROUPS:
+      text = statData[STAT_CURRENT_WINDOW_GROUPS_COUNT]
+      break
+  }
 
   //   Update the badge
   browser.action.setBadgeText({

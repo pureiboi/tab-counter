@@ -68,7 +68,7 @@ const checkSettings = async function checkSettings (settingsUpdate) {
   // Set base defaults if new insall
   if (!Object.hasOwn(settings, 'version')) {
     settings = {
-      version: '0.0.0', icon: 'tabcounter.plain.min.svg', counter: 0, badgeColor: '#999999', skipPinnedTab: false, skipHiddenTab: false
+      version: '0.0.0', icon: 'tabcounter.plain.min.svg', counter: 0, badgeColor: '#999999', skipPinnedTab: false, skipHiddenTab: false, skipUnloadedTab: false
     }
   }
 
@@ -93,6 +93,7 @@ const checkSettings = async function checkSettings (settingsUpdate) {
       settings.badgeTextColor = '#000000'
       settings.skipPinnedTab = false
       settings.skipHiddenTab = false
+      settings.skipUnloadedTab = false
     }
   }
   browser.storage.local.set(Object.assign(settings, {

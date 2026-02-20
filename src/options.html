@@ -174,11 +174,6 @@
       </td>
       <td>
         <select name="counter" id="counter" optionType="number">
-          <!--                        <option value="0">Number of Tabs in Current Window</option>-->
-          <!--                        <option value="1">Total Number of Tabs of All Windows</option>-->
-          <!--                        <option value="2">Both Number of Tabs in Current Window/Total Number of Tabs of All Windows</option>-->
-          <!--                        <option value="4">Total Number of Windows</option>-->
-          <!--                        <option value="3">None (disables the counter and hover text; click the icon to see the count)</option>-->
         </select>
       </td>
     </tr>
@@ -195,6 +190,12 @@
         <span class="info-icon tooltip">Skip hidden tab<span class="tooltiptext">Do not count hidden tab</span></span>
       </td>
       <td><input type="checkbox" name="skipHiddenTab" id="skipHiddenTab" optionType="boolean"/></td>
+    </tr>
+    <tr>
+      <td>
+        <span class="info-icon tooltip">Skip unloaded tab<span class="tooltiptext">Do not count unloaded tab. Tabs are automatically or manually unloaded</span></span>
+      </td>
+      <td><input type="checkbox" name="skipUnloadedTab" id="skipUnloadedTab" optionType="boolean"/></td>
     </tr>
   </table>
 </form>

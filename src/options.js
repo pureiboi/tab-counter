@@ -18,7 +18,14 @@
  * limitations under the License.
  */
 /* global Option:readonly */
-import { COUNT_TAB_CURRENT_WINDOW, COUNT_TAB_ALL_WINDOWS, COUNT_TAB_CURRENT_WINDOW_OVER_ALL_WINDOWS, COUNT_WINDOW, COUNT_NONE } from './common.js'
+import {
+  COUNT_TAB_CURRENT_WINDOW,
+  COUNT_TAB_ALL_WINDOWS,
+  COUNT_TAB_CURRENT_WINDOW_OVER_ALL_WINDOWS,
+  COUNT_WINDOW,
+  COUNT_NONE,
+  COUNT_ALL_GROUPS, COUNT_CURRENT_WINDOW_GROUPS
+} from './common.js'
 
 let domReady = false
 let browserReady = false
@@ -77,6 +84,8 @@ function initApp () {
     { text: 'Number of Tabs in Current Window', value: COUNT_TAB_CURRENT_WINDOW },
     { text: 'Total Number of Tabs of All Windows', value: COUNT_TAB_ALL_WINDOWS },
     { text: 'Both Number of Tabs in Current Window/Total Number of Tabs of All Windows', value: COUNT_TAB_CURRENT_WINDOW_OVER_ALL_WINDOWS },
+    { text: 'Total Number of Groups', value: COUNT_ALL_GROUPS },
+    { text: 'Number of Groups in Current Window', value: COUNT_CURRENT_WINDOW_GROUPS },
     { text: 'Total Number of Windows', value: COUNT_WINDOW },
     { text: 'None (disables the counter and hover text; click the icon to see the count)', value: COUNT_NONE }
   ]
