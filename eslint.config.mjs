@@ -11,7 +11,9 @@ export default defineConfig([
   {
     languageOptions: {
       globals: {
-        browser: true
+        browser: true,
+        chrome: "readonly",
+        globalThis: "readonly"
       }
     }
   }

@@ -21,6 +21,11 @@
 import { debounce } from 'underscore'
 import * as common from './common.js'
 
+if (typeof browser === 'undefined') {
+  // Chrome does not support the browser namespace yet.
+  globalThis.browser = chrome
+}
+
 // Prevent from firing too frequently or flooding at a window or restore
 const lazyUpdateIcon = debounce(common.updateAllWindowBadge, 200)
 

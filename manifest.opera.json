@@ -33,16 +33,16 @@
       "128": "icons/tabcounter-128.png",
       "256": "icons/tabcounter-256.png"
     },
-    "default_popup": "dist/popup.html",
+    "default_popup": "popup.html",
     "default_title": "Tab Counter"
   },
   "options_ui": {
-    "page": "dist/options.html"
+    "page": "options.html"
   },
   "background": {
     "scripts": [
       "node_modules/webextension-polyfill/dist/browser-polyfill.js",
-      "dist/background.js"
+      "background.js"
     ],
     "persistent": true
   }
