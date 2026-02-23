@@ -33,16 +33,16 @@
         "size": 1
       }
     ],
-    "default_popup": "dist/popup.html",
+    "default_popup": "popup.html",
     "default_title": "Tab Counter"
   },
   "options_ui": {
-    "page": "dist/options.html"
+    "page": "options.html"
   },
   "background": {
     "scripts": [
-      "dist/common.js",
-      "dist/background.js"
+      "common.js",
+      "background.js"
     ]
   }
 }

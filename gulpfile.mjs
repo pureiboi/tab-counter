@@ -31,15 +31,41 @@ import babelify from 'babelify'
 import sourcemaps from 'gulp-sourcemaps'
 import rename from 'gulp-rename'
 import zip from 'gulp-zip'
+import fs from 'fs'
+import mergeStream from 'merge-stream'
 
 const gulpFile = path.basename(fileURLToPath(import.meta.url))
 const isVerbose = process.argv.includes('--debug')
 const debug = (title) => isVerbose ? gulpDebug({ title }) : new PassThrough({ objectMode: true })
-const baseFiles = ['src/**/*.js', gulpFile]
-const zipOutput = 'build/output'
+
+const fileSets = {
+  src: ['src/**/*.js'],
+  icons: ['icons/**/*'],
+  assets: ['src/**/*', '!src/**/*.js'],
+  toolScrips: [gulpFile, 'scripts/**/*.js'],
+  nodeModules: ['node_modules/webextension-polyfill/**/*', 'node_modules/underscore/**/*', 'node_modules/lodash/**/*'],
+  manifest: ['manifest.*.json'],
+  package: ['package.json'],
+  output: {
+    root: 'build',
+    zip: 'build/output',
+    generated: 'build/generated',
+    dist: 'build/dist'
+  },
+  get lintingSet () {
+    return [].concat(fileSets.src, fileSets.manifest, fileSets.toolScrips)
+  },
+  get watchSet () {
+    return [].concat(fileSets.src, fileSets.toolScrips, fileSets.package, fileSets.nodeModules, fileSets.icons, fileSets.manifest)
+  }
+}
+
+const outputZip = 'build/output'
+const outputGenerated = 'build/generated'
+const outputDist = 'build/dist'
 
 export function lint () {
-  return gulp.src(baseFiles)
+  return gulp.src(fileSets.lintingSet)
     .pipe(debug('linting processing:'))
     .pipe(gulpESLintNew())
     .pipe(gulpESLintNew.format())
@@ -47,85 +73,99 @@ export function lint () {
 }
 
 export function lintFix () {
-  return gulp.src(baseFiles)
+  return gulp.src(fileSets.lintingSet)
     .pipe(debug('lintFix processing:'))
     .pipe(gulpESLintNew({ fix: true }))
     .pipe(gulpESLintNew.fix())
 }
 
-export function checkSafe () {
-  return gulp.src(baseFiles)
+function lintSafe () {
+  return gulp.src(fileSets.lintingSet)
     .pipe(gulpESLintNew())
     .pipe(gulpESLintNew.format())
 }
 
 export function checkLineEnding () {
   return gulp.src('src/**/*.js')
-    .pipe(lec({ verbose: true }))
+    .pipe(lec())
     .pipe(gulp.dest('src'))
 }
 
 export function clean () {
-  return del(['dist/*', 'build/*']).then((files) => {
-    console.log(`cleaned: ${files.length}`)
+  return del([`${fileSets.output.root}/*`])
+}
+
+function compileCode () {
+  return gulp.src(fileSets.src)
+    .pipe(debug('compileCode:'))
+    .pipe(sourcemaps.init())
+    .pipe(bro({
+      transform: [babelify.configure()]
+    }))
+    .pipe(sourcemaps.write('.'))
+    .pipe(gulp.dest(outputGenerated))
+}
+
+function copyStaticCode (cb) {
+  return gulp.parallel(function copyAssets () {
+    return gulp.src(fileSets.assets)
+      .pipe(debug('copyStaticCode:'))
+      .pipe(debug('compile static processing:'))
+      .pipe(gulp.dest(outputGenerated))
+  }, function copyIcons () {
+    return gulp.src(fileSets.icons, { base: '.' })
+      .pipe(debug('copyStaticCode:'))
+      .pipe(debug('compile static processing:'))
+      .pipe(gulp.dest(outputGenerated))
+  })(cb)
+}
+
+function copyDep () {
+  return gulp.src(fileSets.nodeModules, { base: '.' })
+    .pipe(debug('copyDep:'))
+    .pipe(gulp.dest(outputGenerated))
+}
+
+function distManifestFile () {
+  return gulp.src(fileSets.manifest)
+    .pipe(debug('packV2: '))
+    .pipe(rename(path => {
+      const [, browserName] = path.basename.split('.')
+      path.dirname = browserName
+      path.basename = 'manifest'
+    }))
+    .pipe(gulp.dest(fileSets.output.dist))
+}
+
+function distSourceFiles () {
+  const entries = fs.readdirSync('.').filter(entry => /^manifest\..+\.json$/.test(entry))
+  const browserNames = entries.map(entry => entry.split('.')[1])
+  const tasks = browserNames.map(browserName => gulp.src([`${fileSets.output.generated}/**/*`, `!${fileSets.output.generated}/**/*.map`])
+    .pipe(debug(`distSourceFiles (${browserName}): `))
+    .pipe(gulp.dest(`${outputDist}/${browserName}`)))
+  return mergeStream(...tasks)
+}
+
+export function createArtifact () {
+  const entries = fs.readdirSync('.').filter(entry => /^manifest\..+\.json$/.test(entry))
+  const browserNames = entries.map(entry => entry.split('.')[1])
+  const tasks = browserNames.map(browser => {
+    return gulp.src(`${fileSets.output.dist}/${browser}/**/*`, { base: `${fileSets.output.dist}/${browser}` })
+      .pipe(debug(`createArtifact (${browser}): `))
+      .pipe(zip(`tab-counter.${browser}.zip`))
+      .pipe(gulp.dest(outputZip))
   })
+  return mergeStream(...tasks)
 }
 
-export function compile (cb) {
-  gulp.parallel(
-    function compileJs () {
-      return gulp.src('src/**/*.js')
-        .pipe(debug('compile js processing:'))
-        .pipe(sourcemaps.init())
-        .pipe(bro({
-          transform: [babelify.configure()]
-        }))
-        .pipe(sourcemaps.write('.'))
-        .pipe(gulp.dest('dist'))
-    }, function copyStaticPage () {
-      return gulp.src(['src/**/*', '!src/**/*.js'])
-        .pipe(debug('compile static processing:'))
-        .pipe(gulp.dest('dist'))
-    })(cb)
+export function monitor () {
+  gulp.watch(fileSets.watchSet, gulp.series(gulp.parallel(lintSafe, compile), distCode))
 }
 
-export function pack (cb) {
-  gulp.parallel(
-    function packFirefox () {
-      return gulp.src([
-        'manifest.firefox.json',
-        'LICENSE',
-        'dist/**/*',
-        '!dist/**/*.map', 'node_modules/underscore/**/*', 'node_modules/lodash/**/*',
-        'icons/**/clear-*.png', 'icons/**/*.min.svg'], { base: '.' })
-        .pipe(rename(path => {
-          if (path.basename === 'manifest.firefox') {
-            path.basename = 'manifest'
-          }
-        }))
-        .pipe(zip('tab-counter.firefox.zip'))
-        .pipe(gulp.dest(zipOutput))
-    },
-    function packOpera () {
-      return gulp.src(['dist/**/*.js', 'dist/**/*.html', 'node_modules/webextension-polyfill/dist/browser-polyfill.js', 'node_modules/underscore/underscore.js', 'icons/**/*.png', 'icons/**/*.min.svg', 'manifest.opera.json', 'LICENSE'], { base: '.' })
-        .pipe(rename(path => {
-          if (path.basename === 'manifest.opera') {
-            path.basename = 'manifest'
-          }
-        }))
-        .pipe(zip('tab-counter.opera.zip'))
-        .pipe(gulp.dest(zipOutput))
-    }
-  )(cb)
-}
-
-export function watch (cb) {
-  return gulp.series(checkSafe, compile,
-    function monitor () {
-      return gulp.watch(['src/**/*', 'node_modules/webextension-polyfill/**/*', 'node_modules/underscore/**/*', 'icons/**/*', 'manifest.json', 'package.json'], gulp.parallel('checkSafe', 'compile'))
-    })(cb)
-}
-
-export const dist = gulp.series(clean, checkLineEnding, lint, compile)
-export const build = gulp.series(dist, pack)
+export const compile = gulp.parallel(compileCode, copyStaticCode, copyDep)
+export const watch = gulp.series(lintSafe, monitor)
+export const generateCode = gulp.series(clean, checkLineEnding, lint, compile)
+export const distCode = gulp.parallel(distManifestFile, distSourceFiles)
+export const artifact = gulp.series(distCode, createArtifact)
+export const build = gulp.series(generateCode, artifact)
 export default build
