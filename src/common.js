@@ -18,6 +18,12 @@ export const STAT_ALL_TAB_GROUP_COUNT = 'all_tab_group'
 export const STAT_CURRENT_UNLOADED_TAB_COUNT = 'current_window_unloaded_tab'
 export const STAT_ALL_UNLOADED_TAB_COUNT = 'all_unloaded_tab'
 
+const formatter = new Intl.NumberFormat('en-US', {
+  notation: 'compact',
+  compactDisplay: 'short',
+  maximumFractionDigits: 1
+})
+
 export function getBaseQuery () {
   return {
     allTabsQuery: {},
@@ -142,7 +148,7 @@ const updateWindowBadge = async function updateWindowBadge (windowId) {
 
   //   Update the badge
   browser.action.setBadgeText({
-    text,
+    text: formatter.format(text),
     windowId
   })
 
