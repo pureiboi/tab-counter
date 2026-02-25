@@ -43,7 +43,7 @@ const fileSets = {
   icons: ['icons/**/*'],
   assets: ['src/**/*', '!src/**/*.js'],
   toolScrips: [gulpFile, 'scripts/**/*.js'],
-  nodeModules: ['node_modules/webextension-polyfill/**/*', 'node_modules/underscore/**/*', 'node_modules/lodash/**/*'],
+  nodeModules: ['node_modules/webextension-polyfill/**/*'],
   manifest: ['manifest.*.json'],
   package: ['package.json'],
   output: {

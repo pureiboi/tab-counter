@@ -2,10 +2,6 @@
   "name": "Tab Counter",
   "short_name": "Tab Counter",
   "author": "pureiboi",
-  "developer": {
-    "name": "pureiboi",
-    "url": "https://pureiboi.github.io/"
-  },
   "version": "2.2.0",
   "description": "A button badge that shows the number of tabs open in a window",
   "homepage_url": "https://github.com/pureiboi/tab-counter",
@@ -22,7 +18,7 @@
   "permissions": [
     "storage"
   ],
-  "browser_action": {
+  "action": {
     "browser_style": true,
     "default_icon": {
       "16": "icons/tabcounter-16.png",
@@ -40,9 +36,7 @@
     "page": "options.html"
   },
   "background": {
-    "scripts": [
-      "node_modules/webextension-polyfill/dist/browser-polyfill.js",
-      "background.js"
-    ]
+    "service_worker": "background.js",
+    "type": "module"
   }
 }

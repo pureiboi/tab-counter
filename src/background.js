@@ -18,8 +18,16 @@
  * limitations under the License.
  */
 
-import { debounce } from 'underscore'
 import * as common from './common.js'
+
+// Simple debounce to avoid underscore's CSP issues with eval
+function debounce (func, wait) {
+  let timeout
+  return function (...args) {
+    clearTimeout(timeout)
+    timeout = setTimeout(() => func.apply(this, args), wait)
+  }
+}
 
 if (typeof browser === 'undefined') {
   // Chrome does not support the browser namespace yet.

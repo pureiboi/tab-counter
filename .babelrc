@@ -4,8 +4,13 @@
       "@babel/preset-env",
       {
         "useBuiltIns": "usage",
-        "modules": "commonjs",
-        "debug": false
+        "modules": "auto",
+        "debug": false,
+        "targets": {
+          "firefox": "140.7.0",
+          "chrome": "88",
+          "opera": "88"
+        }
       }
     ]
   ]
