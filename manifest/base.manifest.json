@@ -1,0 +1,16 @@
+{
+    "author": "pureiboi",
+    "description": "A button badge that shows the number of tabs open in a window",
+    "homepage_url": "https://github.com/pureiboi/tab-counter",
+    "manifest_version": 3,
+    "name": "Tab Counter",
+    "options_ui": {
+        "page": "options.html"
+    },
+    "permissions": [
+        "storage",
+        "tabGroups"
+    ],
+    "short_name": "Tab Counter",
+    "version": "2.2.0"
+}
