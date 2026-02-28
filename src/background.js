@@ -17,18 +17,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+import { debounce } from 'underscore'
 import * as common from './common.js'
 import browser from 'webextension-polyfill'
-
-// Simple debounce to avoid underscore's CSP issues with eval
-function debounce (func, wait) {
-  let timeout
-  return function (...args) {
-    clearTimeout(timeout)
-    timeout = setTimeout(() => func.apply(this, args), wait)
-  }
-}
 
 // not needed, use webextension-polyfill
 // if (typeof browser === 'undefined') {

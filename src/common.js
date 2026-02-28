@@ -1,3 +1,4 @@
+import lodash from 'lodash'
 import browser from 'webextension-polyfill'
 
 export const COUNT_TAB_CURRENT_WINDOW = 0
@@ -17,21 +18,6 @@ export const STAT_CURRENT_TAB_GROUP_COUNT = 'current_window_tab_group'
 export const STAT_ALL_TAB_GROUP_COUNT = 'all_tab_group'
 export const STAT_CURRENT_UNLOADED_TAB_COUNT = 'current_window_unloaded_tab'
 export const STAT_ALL_UNLOADED_TAB_COUNT = 'all_unloaded_tab'
-
-function mergeObject (...objects) {
-  const result = {}
-  for (const obj of objects) {
-    if (!obj) continue
-    for (const key of Object.keys(obj)) {
-      if (typeof obj[key] === 'object' && obj[key] !== null && !Array.isArray(obj[key])) {
-        result[key] = mergeObject(result[key] || {}, obj[key])
-      } else {
-        result[key] = obj[key]
-      }
-    }
-  }
-  return result
-}
 
 export function getBaseQuery () {
   return {
@@ -80,14 +66,14 @@ function formatQueryUnloadedTab () {
 export async function queryBadgeData (windowId) {
   const settings = await browser.storage.local.get()
 
-  const queryObject = mergeObject(getBaseQuery(), getSkipPinnedTabQuery(settings.skipPinnedTab), getSkipHiddenTabQuery(settings.skipHiddenTab)) // lodash.merge(getBaseQuery(), getSkipPinnedTabQuery(settings.skipPinnedTab), getSkipHiddenTabQuery(settings.skipHiddenTab))
+  const queryObject = lodash.merge(getBaseQuery(), getSkipPinnedTabQuery(settings.skipPinnedTab), getSkipHiddenTabQuery(settings.skipHiddenTab))
 
   const allWindowsObj = await browser.windows.getAll({
     populate: false,
     windowTypes: ['normal']
   })
   const allTabObj = await browser.tabs.query(queryObject.allTabsQuery)
-  const currentWindowTab = await browser.tabs.query(mergeObject(queryObject.currentWindowQuery, { windowId }))
+  const currentWindowTab = await browser.tabs.query(lodash.merge(queryObject.currentWindowQuery, { windowId }))
   const currentWindowGroupCount = await browser.tabGroups.query({ windowId })
   const allGroupObj = await browser.tabGroups.query({})
   const currentWindowTagInGroup = currentWindowTab.filter(tab => tab.groupId !== browser.tabGroups.TAB_GROUP_ID_NONE)
@@ -97,7 +83,7 @@ export async function queryBadgeData (windowId) {
   let unloadedCurrentWindowTabCount = 0
   if (settings.countUnloadedTab) {
     allUnloadedTabCount = (await browser.tabs.query(formatQueryUnloadedTab().allTabsQuery)).length
-    unloadedCurrentWindowTabCount = (await browser.tabs.query(mergeObject(formatQueryUnloadedTab().currentWindowQuery, { windowId }))).length
+    unloadedCurrentWindowTabCount = (await browser.tabs.query(lodash.merge(formatQueryUnloadedTab().currentWindowQuery, { windowId }))).length
   }
 
   return {
