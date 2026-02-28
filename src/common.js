@@ -1,3 +1,5 @@
+import browser from 'webextension-polyfill'
+
 export const COUNT_TAB_CURRENT_WINDOW = 0
 export const COUNT_TAB_ALL_WINDOWS = 1
 export const COUNT_TAB_CURRENT_WINDOW_OVER_ALL_WINDOWS = 2
@@ -153,15 +155,25 @@ const updateWindowBadge = async function updateWindowBadge (windowId) {
       break
   }
 
-  //   Update the badge
-  browser.action.setBadgeText({
+  // default support Firefox and Safari
+  const badgeTextPayload = {
     text,
     windowId
-  })
+  }
 
-  //  Update the tooltip
-  browser.action.setTitle({
+  const titlePayload = {
     title: `Tab Counter\nTabs in this window:  ${statData[STAT_CURRENT_WINDOW_TABS_COUNT]}\nTabs in all windows: ${statData[STAT_ALL_TAB_COUNT]}\nNumber of windows: ${statData[STAT_WINDOW_COUNT]}`,
     windowId
-  })
+  }
+
+  if (!browser.runtime.getBrowserInfo) {
+    // Chrome, Opera, and Edge
+    delete badgeTextPayload.windowId
+
+    delete titlePayload.windowId
+  }
+
+  browser.action.setBadgeText(badgeTextPayload)
+
+  browser.action.setTitle(titlePayload)
 }

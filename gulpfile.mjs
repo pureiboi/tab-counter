@@ -56,7 +56,7 @@ const fileSets = {
     return [].concat(fileSets.src, fileSets.manifest, fileSets.toolScrips)
   },
   get watchSet () {
-    return [].concat(fileSets.src, fileSets.toolScrips, fileSets.package, fileSets.nodeModules, fileSets.icons, fileSets.manifest)
+    return [].concat(fileSets.assets, fileSets.src, fileSets.toolScrips, fileSets.package, fileSets.nodeModules, fileSets.icons, fileSets.manifest)
   }
 }
 
@@ -163,7 +163,7 @@ export function monitor () {
 }
 
 export const compile = gulp.parallel(compileCode, copyStaticCode, copyDep)
-export const watch = gulp.series(lintSafe, monitor)
+export const watch = gulp.series(lintSafe, compile, monitor)
 export const generateCode = gulp.series(clean, checkLineEnding, lint, compile)
 export const distCode = gulp.parallel(distManifestFile, distSourceFiles)
 export const artifact = gulp.series(distCode, createArtifact)

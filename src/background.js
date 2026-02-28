@@ -19,6 +19,7 @@
  */
 
 import * as common from './common.js'
+import browser from 'webextension-polyfill'
 
 // Simple debounce to avoid underscore's CSP issues with eval
 function debounce (func, wait) {
@@ -29,10 +30,14 @@ function debounce (func, wait) {
   }
 }
 
-if (typeof browser === 'undefined') {
-  // Chrome does not support the browser namespace yet.
-  globalThis.browser = chrome
-}
+// not needed, use webextension-polyfill
+// if (typeof browser === 'undefined') {
+//   console.log('browser not found, set to chrome')
+//   // Chrome does not support the browser namespace yet.
+//   globalThis.browser = chrome
+//
+//   console.log(browser.runtime.getVersion())
+// }
 
 // Prevent from firing too frequently or flooding at a window or restore
 const lazyUpdateIcon = debounce(common.updateAllWindowBadge, 200)

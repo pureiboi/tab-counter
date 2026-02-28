@@ -20,10 +20,10 @@
     "256": "icons/tabcounter-logo-256.png"
   },
   "permissions": [
-    "storage"
+    "storage",
+    "tabGroups"
   ],
-  "browser_action": {
-    "browser_style": true,
+  "action": {
     "default_icon": {
       "16": "icons/tabcounter-16.png",
       "32": "icons/tabcounter-32.png",
@@ -40,9 +40,7 @@
     "page": "options.html"
   },
   "background": {
-    "scripts": [
-      "node_modules/webextension-polyfill/dist/browser-polyfill.js",
-      "background.js"
-    ]
+    "service_worker": "background.js",
+    "type": "module"
   }
 }
