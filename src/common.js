@@ -178,7 +178,6 @@ const updateWindowBadge = async function updateWindowBadge (windowId) {
     titleContent.push(`Groups tab in all windows: ${statData[STAT_ALL_TAB_GROUP_COUNT]}`)
   }
 
-
   titleContent.push(`Number of windows: ${statData[STAT_WINDOW_COUNT]}`)
 
   const title = titleContent.join('\n')
