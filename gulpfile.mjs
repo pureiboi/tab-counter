@@ -78,11 +78,11 @@ export function fixBaseManifest () {
   return gulp.src('./manifest/*.json')
     .pipe(debug('fixBaseManifest:'))
     .pipe(sortJson())
-    .pipe(formatJson(4))
+    .pipe(formatJson(2))
     .pipe(gulp.dest('./manifest'))
 }
 
-export function lintFix () {
+export function lintCodeFix () {
   return gulp.src(fileSets.lintingSet)
     .pipe(debug('lintFix processing:'))
     .pipe(gulpESLintNew({ fix: true }))
@@ -150,7 +150,7 @@ function generateManifest () {
           jsonSpace: ' '
         }))
         .pipe(sortJson())
-        .pipe(formatJson(4))
+        .pipe(formatJson(2))
         .pipe(gulp.dest(fileSets.output.generatedManifest))
     })
 
@@ -196,5 +196,6 @@ export const generateCode = gulp.series(clean, checkLineEnding, lint, compile)
 export const distCode = gulp.parallel(gulp.series(generateManifest, distManifestFile), distSourceFiles)
 export const artifact = gulp.series(distCode, createArtifact)
 export const build = gulp.series(generateCode, artifact)
+export const lintFix = gulp.parallel(fixBaseManifest, lintCodeFix)
 export const watch = gulp.series(lintSafe, compile, distCode, monitor)
 export default build

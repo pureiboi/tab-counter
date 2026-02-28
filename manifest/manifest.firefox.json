@@ -1,30 +1,24 @@
 {
-    "action": {
-        "default_area": "tabstrip",
-        "default_icon": "icons/tabcounter.plain.min.svg",
-        "default_popup": "popup.html",
-        "default_title": "Tab Counter",
-        "theme_icons": [
-            {
-                "dark": "icons/tabcounter-gray10.plain.min.svg",
-                "light": "icons/tabcounter-gray90.plain.min.svg",
-                "size": 1
-            }
-        ]
-    },
-    "background": {
-        "scripts": [
-            "common.js",
-            "background.js"
-        ]
-    },
-    "browser_specific_settings": {
-        "gecko": {
-            "id": "tab-counter@pureiboi.funapp.io",
-            "strict_min_version": "58.0"
-        }
-    },
-    "icons": {
-        "1": "icons/tabcounter-logo.plain.min.svg"
+  "action": {
+    "default_area": "tabstrip",
+    "theme_icons": [
+      {
+        "dark": "icons/tabcounter-gray10.plain.min.svg",
+        "light": "icons/tabcounter-gray90.plain.min.svg",
+        "size": 1
+      }
+    ]
+  },
+  "background": {
+    "scripts": [
+      "common.js",
+      "background.js"
+    ]
+  },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "tab-counter@pureiboi.funapp.io",
+      "strict_min_version": "58.0"
     }
+  }
 }
