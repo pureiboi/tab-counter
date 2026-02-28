@@ -1,4 +1,5 @@
 import lodash from 'lodash'
+import browser from 'webextension-polyfill'
 
 export const COUNT_TAB_CURRENT_WINDOW = 0
 export const COUNT_TAB_ALL_WINDOWS = 1
@@ -146,15 +147,46 @@ const updateWindowBadge = async function updateWindowBadge (windowId) {
       break
   }
 
-  //   Update the badge
-  browser.action.setBadgeText({
-    text: formatter.format(text),
+  // default support Firefox and Safari
+  const badgeTextPayload = {
+    text,
     windowId
-  })
+  }
 
-  //  Update the tooltip
-  browser.action.setTitle({
-    title: `Tab Counter\nTabs in this window:  ${statData[STAT_CURRENT_WINDOW_TABS_COUNT]}\nTabs in all windows: ${statData[STAT_ALL_TAB_COUNT]}\nNumber of windows: ${statData[STAT_WINDOW_COUNT]}`,
+  const titleContent = []
+  titleContent.push('Tab Counter\n')
+  titleContent.push(`Tabs in this window:  ${statData[STAT_CURRENT_WINDOW_TABS_COUNT]}`)
+  titleContent.push(`Tabs in all windows: ${statData[STAT_ALL_TAB_COUNT]}`)
+
+  if (settings.countUnloadedTab) {
+    titleContent.push(`Unloaded tabs in this window: ${statData[STAT_CURRENT_UNLOADED_TAB_COUNT]}`)
+    titleContent.push(`Unloaded tabs all windows: ${statData[STAT_ALL_UNLOADED_TAB_COUNT]}`)
+  }
+
+  if (settings.countGroup) {
+    titleContent.push(`Groups in this window: ${statData[STAT_CURRENT_WINDOW_GROUPS_COUNT]}`)
+    titleContent.push(`Groups in all windows: ${statData[STAT_ALL_GROUP_COUNT]}`)
+    titleContent.push(`Groups tab in this window: ${statData[STAT_CURRENT_TAB_GROUP_COUNT]}`)
+    titleContent.push(`Groups tab in all windows: ${statData[STAT_ALL_TAB_GROUP_COUNT]}`)
+  }
+
+  titleContent.push(`Number of windows: ${statData[STAT_WINDOW_COUNT]}`)
+
+  const title = titleContent.join('\n')
+
+  const titlePayload = {
+    title,
     windowId
-  })
+  }
+
+  if (!browser.runtime.getBrowserInfo) {
+    // Chrome, Opera, and Edge
+    delete badgeTextPayload.windowId
+
+    delete titlePayload.windowId
+  }
+
+  browser.action.setBadgeText(badgeTextPayload)
+
+  browser.action.setTitle(titlePayload)
 }

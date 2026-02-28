@@ -17,14 +17,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 import { debounce } from 'underscore'
 import * as common from './common.js'
+import browser from 'webextension-polyfill'
 
-if (typeof browser === 'undefined') {
-  // Chrome does not support the browser namespace yet.
-  globalThis.browser = chrome
-}
+// not needed, use webextension-polyfill
+// if (typeof browser === 'undefined') {
+//   console.log('browser not found, set to chrome')
+//   // Chrome does not support the browser namespace yet.
+//   globalThis.browser = chrome
+//
+//   console.log(browser.runtime.getVersion())
+// }
 
 // Prevent from firing too frequently or flooding at a window or restore
 const lazyUpdateIcon = debounce(common.updateAllWindowBadge, 200)
@@ -73,7 +77,7 @@ const checkSettings = async function checkSettings (settingsUpdate) {
   // Set base defaults if new insall
   if (!Object.hasOwn(settings, 'version')) {
     settings = {
-      version: '0.0.0', icon: 'tabcounter.plain.min.svg', counter: 0, badgeColor: '#999999', skipPinnedTab: false, skipHiddenTab: false, countUnloadedTab: false, countGroup: false
+      version: '0.0.0', icon: 'tabcounter.plain.min.png', counter: 0, badgeColor: '#999999', skipPinnedTab: false, skipHiddenTab: false, countUnloadedTab: false, countGroup: false
     }
   }
 
@@ -83,7 +87,7 @@ const checkSettings = async function checkSettings (settingsUpdate) {
     // Upgrade
 
     // since v0.3.0, icons now adapt to theme so reset icon setting
-    if (versionSplit[0] === 0 && versionSplit[1] < 3) settings.icon = 'tabcounter.plain.min.svg'
+    if (versionSplit[0] === 0 && versionSplit[1] < 3) settings.icon = 'tabcounter.plain.min.png'
 
     // disable the "both" counter option in version v0.3.0 due to the four-character badge limit (renders the feature uselss)
     if (versionSplit[0] === 0 && versionSplit[1] < 3) {
@@ -126,7 +130,7 @@ const checkSettings = async function checkSettings (settingsUpdate) {
   if (Object.hasOwn(settings, 'icon')) {
     browser.action.setIcon({ path: `icons/${settings.icon}` })
   } else {
-    browser.action.setIcon({ path: 'icons/tabcounter.plain.min.svg' })
+    browser.action.setIcon({ path: 'icons/tabcounter.plain.min.png' })
   }
 
   // Get counter preference

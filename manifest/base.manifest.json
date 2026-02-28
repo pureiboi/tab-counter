@@ -1,0 +1,38 @@
+{
+  "action": {
+    "default_icon": {
+      "16": "icons/tabcounter-16.png",
+      "32": "icons/tabcounter-32.png",
+      "38": "icons/tabcounter-38.png",
+      "64": "icons/tabcounter-64.png",
+      "96": "icons/tabcounter-96.png",
+      "128": "icons/tabcounter-128.png",
+      "256": "icons/tabcounter-256.png"
+    },
+    "default_popup": "popup.html",
+    "default_title": "Tab Counter"
+  },
+  "author": "pureiboi",
+  "description": "A button badge that shows the number of tabs open in a window",
+  "homepage_url": "https://github.com/pureiboi/tab-counter",
+  "icons": {
+    "16": "icons/tabcounter-logo-16.png",
+    "32": "icons/tabcounter-logo-32.png",
+    "38": "icons/tabcounter-logo-38.png",
+    "64": "icons/tabcounter-logo-64.png",
+    "96": "icons/tabcounter-logo-96.png",
+    "128": "icons/tabcounter-logo-128.png",
+    "256": "icons/tabcounter-logo-256.png"
+  },
+  "manifest_version": 3,
+  "name": "Tab Counter",
+  "options_ui": {
+    "page": "options.html"
+  },
+  "permissions": [
+    "storage",
+    "tabGroups"
+  ],
+  "short_name": "Tab Counter",
+  "version": "2.2.0"
+}

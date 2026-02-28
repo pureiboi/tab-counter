@@ -33,10 +33,15 @@ import rename from 'gulp-rename'
 import zip from 'gulp-zip'
 import fs from 'fs'
 import mergeStream from 'merge-stream'
+import mergeJson from 'gulp-merge-json'
+import sortJsonM from 'gulp-json-sort'
+import formatJson from 'gulp-json-format'
 
+const sortJson = sortJsonM.default
 const gulpFile = path.basename(fileURLToPath(import.meta.url))
 const isVerbose = process.argv.includes('--debug')
 const debug = (title) => isVerbose ? gulpDebug({ title }) : new PassThrough({ objectMode: true })
+const manifestEntry = fs.readdirSync('./manifest').filter(entry => /^manifest\..+\.json$/.test(entry))
 
 const fileSets = {
   src: ['src/**/*.js'],
@@ -44,25 +49,22 @@ const fileSets = {
   assets: ['src/**/*', '!src/**/*.js'],
   toolScrips: [gulpFile, 'scripts/**/*.js'],
   nodeModules: ['node_modules/webextension-polyfill/**/*', 'node_modules/underscore/**/*', 'node_modules/lodash/**/*'],
-  manifest: ['manifest.*.json'],
+  manifest: ['./manifest/manifest.*.json'],
   package: ['package.json'],
   output: {
     root: 'build',
     zip: 'build/output',
-    generated: 'build/generated',
+    generated: 'build/generated_code',
+    generatedManifest: 'build/generated_manifest',
     dist: 'build/dist'
   },
   get lintingSet () {
     return [].concat(fileSets.src, fileSets.manifest, fileSets.toolScrips)
   },
   get watchSet () {
-    return [].concat(fileSets.src, fileSets.toolScrips, fileSets.package, fileSets.nodeModules, fileSets.icons, fileSets.manifest)
+    return [].concat(fileSets.assets, fileSets.src, fileSets.toolScrips, fileSets.package, fileSets.nodeModules, fileSets.icons, fileSets.manifest)
   }
 }
-
-const outputZip = 'build/output'
-const outputGenerated = 'build/generated'
-const outputDist = 'build/dist'
 
 export function lint () {
   return gulp.src(fileSets.lintingSet)
@@ -72,7 +74,15 @@ export function lint () {
     .pipe(gulpESLintNew.failAfterError())
 }
 
-export function lintFix () {
+export function fixBaseManifest () {
+  return gulp.src('./manifest/*.json')
+    .pipe(debug('fixBaseManifest:'))
+    .pipe(sortJson())
+    .pipe(formatJson(2))
+    .pipe(gulp.dest('./manifest'))
+}
+
+export function lintCodeFix () {
   return gulp.src(fileSets.lintingSet)
     .pipe(debug('lintFix processing:'))
     .pipe(gulpESLintNew({ fix: true }))
@@ -103,32 +113,53 @@ function compileCode () {
       transform: [babelify.configure()]
     }))
     .pipe(sourcemaps.write('.'))
-    .pipe(gulp.dest(outputGenerated))
+    .pipe(gulp.dest(fileSets.output.generated))
 }
 
-function copyStaticCode (cb) {
+function copyStaticAsset (cb) {
   return gulp.parallel(function copyAssets () {
     return gulp.src(fileSets.assets)
-      .pipe(debug('copyStaticCode:'))
-      .pipe(debug('compile static processing:'))
-      .pipe(gulp.dest(outputGenerated))
+      .pipe(debug('copyAssets:'))
+      .pipe(gulp.dest(fileSets.output.generated))
   }, function copyIcons () {
-    return gulp.src(fileSets.icons, { base: '.' })
-      .pipe(debug('copyStaticCode:'))
-      .pipe(debug('compile static processing:'))
-      .pipe(gulp.dest(outputGenerated))
+    const browserNames = manifestEntry.map(entry => entry.split('.')[1])
+    const tasks = browserNames.map(browserName => gulp.src(fileSets.icons, {
+      base: '.',
+      encoding: false
+    })
+      .pipe(debug(`copyIcons (${browserName}): `))
+      .pipe(gulp.dest(`${fileSets.output.dist}/${browserName}`)))
+    return mergeStream(...tasks)
+  }, function copyDep () {
+    const browserNames = manifestEntry.map(entry => entry.split('.')[1])
+    const tasks = browserNames.map(browserName => gulp.src(fileSets.nodeModules, { base: '.' })
+      .pipe(debug(`copyDep (${browserName}): `))
+      .pipe(gulp.dest(`${fileSets.output.dist}/${browserName}`)))
+    return mergeStream(...tasks)
   })(cb)
 }
 
-function copyDep () {
-  return gulp.src(fileSets.nodeModules, { base: '.' })
-    .pipe(debug('copyDep:'))
-    .pipe(gulp.dest(outputGenerated))
+function generateManifest () {
+  const baseManifest = JSON.parse(fs.readFileSync('./manifest/base.manifest.json', 'utf8'))
+  const tasks = manifestEntry
+    .map(file => {
+      return gulp.src(`./manifest/${file}`)
+        .pipe(mergeJson({
+          fileName: file,
+          startObj: baseManifest,
+          jsonSpace: ' '
+        }))
+        .pipe(sortJson())
+        .pipe(formatJson(2))
+        .pipe(gulp.dest(fileSets.output.generatedManifest))
+    })
+
+  return mergeStream(...tasks)
 }
 
 function distManifestFile () {
-  return gulp.src(fileSets.manifest)
-    .pipe(debug('packV2: '))
+  return gulp.src(`${fileSets.output.generatedManifest}/*`)
+    .pipe(debug('distManifestFile: '))
     .pipe(rename(path => {
       const [, browserName] = path.basename.split('.')
       path.dirname = browserName
@@ -138,22 +169,20 @@ function distManifestFile () {
 }
 
 function distSourceFiles () {
-  const entries = fs.readdirSync('.').filter(entry => /^manifest\..+\.json$/.test(entry))
-  const browserNames = entries.map(entry => entry.split('.')[1])
+  const browserNames = manifestEntry.map(entry => entry.split('.')[1])
   const tasks = browserNames.map(browserName => gulp.src([`${fileSets.output.generated}/**/*`, `!${fileSets.output.generated}/**/*.map`])
     .pipe(debug(`distSourceFiles (${browserName}): `))
-    .pipe(gulp.dest(`${outputDist}/${browserName}`)))
+    .pipe(gulp.dest(`${fileSets.output.dist}/${browserName}`)))
   return mergeStream(...tasks)
 }
 
 export function createArtifact () {
-  const entries = fs.readdirSync('.').filter(entry => /^manifest\..+\.json$/.test(entry))
-  const browserNames = entries.map(entry => entry.split('.')[1])
+  const browserNames = manifestEntry.map(entry => entry.split('.')[1])
   const tasks = browserNames.map(browser => {
     return gulp.src(`${fileSets.output.dist}/${browser}/**/*`, { base: `${fileSets.output.dist}/${browser}` })
       .pipe(debug(`createArtifact (${browser}): `))
       .pipe(zip(`tab-counter.${browser}.zip`))
-      .pipe(gulp.dest(outputZip))
+      .pipe(gulp.dest(fileSets.output.zip))
   })
   return mergeStream(...tasks)
 }
@@ -162,10 +191,11 @@ export function monitor () {
   gulp.watch(fileSets.watchSet, gulp.series(gulp.parallel(lintSafe, compile), distCode))
 }
 
-export const compile = gulp.parallel(compileCode, copyStaticCode, copyDep)
-export const watch = gulp.series(lintSafe, monitor)
+export const compile = gulp.parallel(compileCode, copyStaticAsset)
 export const generateCode = gulp.series(clean, checkLineEnding, lint, compile)
-export const distCode = gulp.parallel(distManifestFile, distSourceFiles)
+export const distCode = gulp.parallel(gulp.series(generateManifest, distManifestFile), distSourceFiles)
 export const artifact = gulp.series(distCode, createArtifact)
 export const build = gulp.series(generateCode, artifact)
+export const lintFix = gulp.parallel(fixBaseManifest, lintCodeFix)
+export const watch = gulp.series(lintSafe, compile, distCode, monitor)
 export default build
