@@ -147,6 +147,7 @@ const updateWindowBadge = async function updateWindowBadge (windowId) {
       break
   }
 
+  text = formatter.format(text)
   // default support Firefox and Safari
   const badgeTextPayload = {
     text,
